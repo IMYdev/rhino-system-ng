@@ -4,7 +4,7 @@ An elegant (cursed) rewrite of Rhino Linux's [rhino-system](https://github.com/r
 ![Main screen](showcase.png)
 
 # Why?
-The original application is not responsive to different screen sizes, the window doesn't even scale, my rewrite addresses these responsiveness issues.
+The original application is not responsive to different screen sizes, the window doesn't even scale, my rewrite addresses these responsiveness issues, it also uses a new backend.
 
 # Works?
 Yes, it's a complete, fully-functional rewrite.
