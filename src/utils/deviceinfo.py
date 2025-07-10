@@ -3,7 +3,7 @@
 import os
 import platform
 import psutil
-from log import setup_logging
+from utils.log import setup_logging
 
 logger = setup_logging()
 
