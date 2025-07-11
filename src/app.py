@@ -5,14 +5,14 @@ import re
 from utils.deviceinfo import DeviceInfo
 
 # Adwaita Dark Theme Colors (Don't ask how I got them, involves soul selling to some cosmic entities)
-ADW_BACKGROUND = "#222226"
-ADW_VIEW_BACKGROUND = "#333337"
+ADW_BACKGROUND = "#241f31"
+ADW_VIEW_BACKGROUND = "#353141"
 ADW_TEXT_COLOR = ft.Colors.WHITE
 ADW_SECONDARY_TEXT_COLOR = ft.Colors.GREY_400
 ADW_BORDER_COLOR = ADW_BACKGROUND
-BUTTON_BG_COLOR = "#2c3441"
-BUTTON_TEXT_COLOR = "#71b4ff"
-BUTTON_SECONDARY_BG_COLOR = "#3584e4"
+BUTTON_BG_COLOR = "#372b50"
+BUTTON_TEXT_COLOR = "#d28dff"
+BUTTON_SECONDARY_BG_COLOR = "#9235ff"
 
 def build_ui(page: ft.Page):
     page.title = "Your System"
