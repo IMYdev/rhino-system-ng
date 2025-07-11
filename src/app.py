@@ -15,11 +15,14 @@ BUTTON_TEXT_COLOR = "#d28dff"
 BUTTON_SECONDARY_BG_COLOR = "#9235ff"
 
 def build_ui(page: ft.Page):
+    page.window.height = 760
+    page.window.width = 580
     page.title = "Your System"
     page.theme_mode = ft.ThemeMode.DARK
     page.horizontal_alignment = ft.CrossAxisAlignment.CENTER
     page.bgcolor = ADW_BACKGROUND
     page.padding = 0
+
 
     sudo_password_field = ft.TextField(
         label="Sudo Password",
@@ -173,6 +176,7 @@ def build_ui(page: ft.Page):
                 ft.Text("Rhino Linux", size=32, weight=ft.FontWeight.BOLD, color=ADW_TEXT_COLOR),
             ],
             horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+            spacing=0
         ),
         padding=ft.padding.only(top=10)
     )
@@ -182,12 +186,13 @@ def build_ui(page: ft.Page):
             text=DeviceInfo.get_os_version(),
             bgcolor=BUTTON_BG_COLOR,
             color=BUTTON_TEXT_COLOR,
-            height=30,
-            width=80,
+            height=45,
+            width=105,
             style=ft.ButtonStyle(
                 text_style=ft.TextStyle(size=14, weight=ft.FontWeight.BOLD),
             ),
-        )
+        ),
+        padding=ft.padding.only(top=0, bottom=10)
     )
 
     upgrade_button = ft.Container(
