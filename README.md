@@ -10,7 +10,7 @@ The original application is not responsive to different screen sizes, the window
 Yes, it's a complete, fully-functional rewrite.
 
 # Building 
-#### Using flet's built-in compiler is not recommended for this usage case.
+#### Using pyinstaller causes some runtime issues, don't use that.
 
 1.  **Clone the repository:**
     ```bash
@@ -27,12 +27,12 @@ Yes, it's a complete, fully-functional rewrite.
 3.  **Install the dependencies:**
     ```bash
     pip3 install -r requirements.txt
-    pip3 install pyinstaller
     ```
 4.  **To build the application:**
     ```bash
-    pyinstaller -n "rhino-system-ng" src/main.py
+    flet build linux
     ```
+***Note that the whole build/linux folder IS the build, not just the small executable in there, so when shipping a build, ship that whole directory's contents.***
 
 # Contributing
 
