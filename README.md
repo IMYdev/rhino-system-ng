@@ -1,7 +1,7 @@
 # What is this?
 An elegant (cursed) rewrite of Rhino Linux's [rhino-system](https://github.com/rhino-linux/rhino-system) utility in [flet.](flet.dev)
 
-![Main screen](showcase.png)
+![Main screen](ui.png)
 
 # Why?
 The original application is not responsive to different screen sizes, the window doesn't even scale, my rewrite addresses these responsiveness issues, it also uses a new backend.
