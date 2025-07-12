@@ -103,7 +103,6 @@ def build_ui(page: ft.Page):
             output_dialog.open = True
             output_dialog.update()
 
-            # Write a temporary expect script
             with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".expect") as tmp:
                 tmp.write(f"""#!/usr/bin/expect -f
     log_user 1
@@ -119,9 +118,9 @@ def build_ui(page: ft.Page):
                 script_path = tmp.name
 
             os.chmod(script_path, 0o700)
-            master_fd, slave_fd = os.openpty()
+            master_fd, slave_fd = os.openpty() 
 
-            # Fix the terminal type issue
+            # Fix the terminal type issue (pacstall is picky about this)
             env = os.environ.copy()
             env["TERM"] = "xterm"
 
@@ -130,7 +129,7 @@ def build_ui(page: ft.Page):
                 stdin=slave_fd,
                 stdout=slave_fd,
                 stderr=slave_fd,
-                preexec_fn=os.setsid,
+                preexec_fn=os.setsid, # Own process group, so upon cancelling from the UI, we can stop the upgrade process too.
                 env=env
             )
 
@@ -165,6 +164,7 @@ def build_ui(page: ft.Page):
         except Exception as e:
             log_column.controls.append(ft.Text(f"Error: {e}", color=ft.Colors.RED_400))
         finally:
+            log_column.controls.append(ft.Text(f"Process finished.", color=ft.Colors.GREEN_400))
             output_dialog.update()
 
 
