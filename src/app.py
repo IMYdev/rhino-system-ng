@@ -102,6 +102,7 @@ def build_ui(page: ft.Page):
             log_column.controls.append(ft.Text("Upgrading system...", color=ft.Colors.BLUE_200))
             output_dialog.open = True
             output_dialog.update()
+
             # Write a temporary expect script
             with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".expect") as tmp:
                 tmp.write(f"""#!/usr/bin/expect -f
@@ -117,17 +118,22 @@ def build_ui(page: ft.Page):
     }}""")
                 script_path = tmp.name
 
-            # Make temp script executable
             os.chmod(script_path, 0o700)
             master_fd, slave_fd = os.openpty()
 
+            # Fix the terminal type issue
+            env = os.environ.copy()
+            env["TERM"] = "xterm"
+
             proc = await asyncio.create_subprocess_exec(
-                script_path, password,
+                script_path,
                 stdin=slave_fd,
                 stdout=slave_fd,
                 stderr=slave_fd,
-                preexec_fn=os.setsid  # Without this, we'd only cancel the application and the update will still be going.
+                preexec_fn=os.setsid,
+                env=env
             )
+
             os.close(slave_fd)
             running_processes["upgrade"] = proc
 
@@ -138,10 +144,9 @@ def build_ui(page: ft.Page):
                         break
                 except OSError as e:
                     if e.errno == errno.EIO:
-                        # This is expected when the child process closes the PTY
                         break
                     else:
-                        raise  # Let actual unexpected errors be raised
+                        raise
 
                 text = data.decode(errors="ignore")
 
