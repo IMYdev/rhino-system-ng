@@ -4,6 +4,7 @@ import os
 import re
 import errno
 import signal
+import tempfile
 from utils.deviceinfo import DeviceInfo
 
 # Adwaita Dark Theme Colors (Don't ask how I got them, involves soul selling to some cosmic entities)
@@ -101,11 +102,27 @@ def build_ui(page: ft.Page):
             log_column.controls.append(ft.Text("Upgrading system...", color=ft.Colors.BLUE_200))
             output_dialog.open = True
             output_dialog.update()
+            # Write a temporary expect script
+            with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".expect") as tmp:
+                tmp.write(f"""#!/usr/bin/expect -f
+    log_user 1
+    set timeout -1
+    spawn rpk update -y
+    expect {{
+        -re "(?i)password.*:" {{
+            send "{password}\\r"
+            exp_continue
+        }}
+        eof
+    }}""")
+                script_path = tmp.name
 
+            # Make temp script executable
+            os.chmod(script_path, 0o700)
             master_fd, slave_fd = os.openpty()
 
             proc = await asyncio.create_subprocess_exec(
-                "./src/utils/rpk_updater.sh", password,
+                script_path, password,
                 stdin=slave_fd,
                 stdout=slave_fd,
                 stderr=slave_fd,
