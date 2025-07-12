@@ -2,6 +2,8 @@ import flet as ft
 import asyncio
 import os
 import re
+import errno
+import signal
 from utils.deviceinfo import DeviceInfo
 
 # Adwaita Dark Theme Colors (Don't ask how I got them, involves soul selling to some cosmic entities)
@@ -103,32 +105,34 @@ def build_ui(page: ft.Page):
             master_fd, slave_fd = os.openpty()
 
             proc = await asyncio.create_subprocess_exec(
-                'sudo', '-S', 'rpk', 'update', '-y',
+                "./src/utils/rpk_updater.sh", password,
                 stdin=slave_fd,
                 stdout=slave_fd,
-                stderr=slave_fd
+                stderr=slave_fd,
+                preexec_fn=os.setsid  # Without this, we'd only cancel the application and the update will still be going.
             )
             os.close(slave_fd)
-
             running_processes["upgrade"] = proc
 
-            password_sent = False
-
             while True:
-                data = await asyncio.get_event_loop().run_in_executor(None, os.read, master_fd, 1024)
-                if not data:
-                    break
+                try:
+                    data = await asyncio.get_event_loop().run_in_executor(None, os.read, master_fd, 1024)
+                    if not data:
+                        break
+                except OSError as e:
+                    if e.errno == errno.EIO:
+                        # This is expected when the child process closes the PTY
+                        break
+                    else:
+                        raise  # Let actual unexpected errors be raised
+
                 text = data.decode(errors="ignore")
 
-
-                if not password_sent and ("password" in text.lower() or "Password" in text):
-                    if password:
-                        os.write(master_fd, (password + "\n").encode())
-                        password_sent = True
-                if "try again" in text:
-                    log_column.controls.append(ft.Text("Wrong password, close the program.", color=ft.Colors.GREEN_100, size=10, font_family="monospace"))
+                if "try again" in text.lower():
+                    log_column.controls.append(ft.Text("Wrong password, close the program.", color=ft.Colors.RED_300, size=10, font_family="monospace"))
                     output_dialog.update()
                     return
+
                 clean_line = clean_log_line(text)
                 if clean_line:
                     log_column.controls.append(ft.Text(clean_line, color=ft.Colors.GREEN_100, size=10, font_family="monospace", selectable=True))
@@ -137,22 +141,25 @@ def build_ui(page: ft.Page):
             await proc.wait()
 
         except Exception as e:
-            if "Errno 5" in str(e):
-                log_column.controls.append(ft.Text("Process finished.", color=ft.Colors.GREEN_400))
-            else:
-                log_column.controls.append(ft.Text(f"Error: {e}", color=ft.Colors.RED_400))
-
-        output_dialog.update()
+            log_column.controls.append(ft.Text(f"Error: {e}", color=ft.Colors.RED_400))
+        finally:
+            output_dialog.update()
 
 
     def cancel_upgrade():
         proc = running_processes.get("upgrade")
         if proc:
-            proc.terminate()
-            log_column.controls.append(ft.Text("Upgrade cancelled by user.", color=ft.Colors.ORANGE_300))
+            try:
+                os.killpg(os.getpgid(proc.pid), signal.SIGTERM)
+                log_column.controls.append(ft.Text("Upgrade cancelled by user.", color=ft.Colors.ORANGE_300))
+            except ProcessLookupError:
+                log_column.controls.append(ft.Text("Process already terminated.", color=ft.Colors.YELLOW_300))
             output_dialog.update()
         else:
             close_output_dialog()
+
+
+
 
     def create_info_row(title, value):
         return ft.Container(
